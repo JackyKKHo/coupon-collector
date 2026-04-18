@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coupon Collector Calculator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: #1a1d27;
+      border: 1px solid #2d3148;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 680px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 1.75rem;
+    }
+
+    /* Table */
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+
+    .items-table th {
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      padding: 0 0.5rem 0.6rem;
+    }
+
+    .items-table th:last-child { text-align: center; width: 48px; }
+
+    .item-row td { padding: 0.3rem 0.5rem; }
+
+    .item-row td:last-child { text-align: center; }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 6px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      padding: 0.45rem 0.6rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus {
+      border-color: #7c3aed;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { opacity: 1; }
+
+    .btn-remove {
+      background: none;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+
+    .btn-remove:hover { background: rgba(239,68,68,0.12); }
+
+    .btn-remove:disabled { color: #3f3f46; cursor: default; background: none; }
+
+    /* Buttons row */
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.5rem 1.1rem;
+      border-radius: 7px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-add {
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #2d3148;
+    }
+
+    .btn-add:hover { background: #263244; }
+
+    .btn-calc {
+      background: #7c3aed;
+      color: #fff;
+      flex: 1;
+    }
+
+    .btn-calc:hover { opacity: 0.88; }
+
+    .btn-calc:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Results */
+    .result-box {
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      display: none;
+    }
+
+    .result-box.visible { display: block; }
+
+    .result-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      margin-bottom: 0.3rem;
+    }
+
+    .result-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #a78bfa;
+      line-height: 1.1;
+    }
+
+    .result-sub {
+      font-size: 0.8rem;
+      color: #475569;
+      margin-top: 0.4rem;
+    }
+
+    .warning-box {
+      background: rgba(234,179,8,0.08);
+      border: 1px solid rgba(234,179,8,0.3);
+      border-radius: 6px;
+      color: #fbbf24;
+      font-size: 0.8rem;
+      padding: 0.6rem 0.9rem;
+      margin-top: 0.9rem;
+      display: none;
+    }
+
+    .warning-box.visible { display: block; }
+
+    .error-box {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 6px;
+      color: #f87171;
+      font-size: 0.85rem;
+      padding: 0.6rem 0.9rem;
+      margin-top: 0.75rem;
+      display: none;
+    }
+
+    .error-box.visible { display: block; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #1e293b;
+      margin: 1.5rem 0;
+    }
+
+    .help-text {
+      font-size: 0.78rem;
+      color: #475569;
+      line-height: 1.6;
+    }
+
+    .help-text strong { color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Coupon Collector Calculator</h1>
+    <p class="subtitle">Expected trials to collect k copies of each item from independent drop rates.</p>
+
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>Item label (optional)</th>
+          <th style="width:130px">Drop rate (1 in X)</th>
+          <th style="width:100px">Qty needed</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="itemsBody"></tbody>
+    </table>
+
+    <div class="actions">
+      <button class="btn btn-add" id="btnAdd">+ Add item</button>
+      <button class="btn btn-calc" id="btnCalc">Calculate</button>
+    </div>
+
+    <div class="result-box" id="resultBox">
+      <div class="result-label">Expected trials</div>
+      <div class="result-value" id="resultValue">—</div>
+      <div class="result-sub" id="resultSub"></div>
+      <div class="warning-box" id="warningBox"></div>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <hr class="divider" />
+    <p class="help-text">
+      <strong>Drop rate (1 in X):</strong> e.g. enter <code>3000</code> for a 1/3000 chance per trial.<br />
+      <strong>Qty needed:</strong> how many copies of that item you need to collect.<br />
+      This computes the expected number of independent trials to obtain all items simultaneously.
+    </p>
+  </div>
+
+  <script>
+    const tbody = document.getElementById("itemsBody");
+    const btnAdd = document.getElementById("btnAdd");
+    const btnCalc = document.getElementById("btnCalc");
+    const resultBox = document.getElementById("resultBox");
+    const resultValue = document.getElementById("resultValue");
+    const resultSub = document.getElementById("resultSub");
+    const warningBox = document.getElementById("warningBox");
+    const errorBox = document.getElementById("errorBox");
+
+    let rowCount = 0;
+
+    function addRow(denom = "", k = "1", label = "") {
+      rowCount++;
+      const id = rowCount;
+      const tr = document.createElement("tr");
+      tr.className = "item-row";
+      tr.dataset.id = id;
+      tr.innerHTML = `
+        <td><input type="text" placeholder="e.g. Bandos Chestplate" value="${label}" /></td>
+        <td><input type="number" min="1" step="1" placeholder="e.g. 3000" value="${denom}" /></td>
+        <td><input type="number" min="1" step="1" placeholder="1" value="${k}" /></td>
+        <td><button class="btn-remove" title="Remove row">✕</button></td>
+      `;
+      tr.querySelector(".btn-remove").addEventListener("click", () => {
+        tr.remove();
+        updateRemoveButtons();
+      });
+      tbody.appendChild(tr);
+      updateRemoveButtons();
+    }
+
+    function updateRemoveButtons() {
+      const btns = tbody.querySelectorAll(".btn-remove");
+      btns.forEach(b => b.disabled = btns.length === 1);
+    }
+
+    function getRows() {
+      const rows = [];
+      tbody.querySelectorAll(".item-row").forEach(tr => {
+        const inputs = tr.querySelectorAll("input");
+        rows.push({
+          label: inputs[0].value.trim(),
+          denominator: inputs[1].value.trim(),
+          k: inputs[2].value.trim(),
+        });
+      });
+      return rows;
+    }
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.classList.add("visible");
+      resultBox.classList.remove("visible");
+    }
+
+    function clearMessages() {
+      errorBox.classList.remove("visible");
+      warningBox.classList.remove("visible");
+    }
+
+    btnAdd.addEventListener("click", () => addRow());
+
+    btnCalc.addEventListener("click", async () => {
+      clearMessages();
+      const rows = getRows();
+
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r.denominator || isNaN(Number(r.denominator)) || Number(r.denominator) <= 0) {
+          showError(`Row ${i + 1}: drop rate must be a positive number.`);
+          return;
+        }
+        if (!r.k || isNaN(Number(r.k)) || Number(r.k) < 1 || !Number.isInteger(Number(r.k))) {
+          showError(`Row ${i + 1}: quantity must be a positive integer.`);
+          return;
+        }
+      }
+
+      btnCalc.disabled = true;
+      btnCalc.textContent = "Calculating…";
+
+      try {
+        const res = await fetch("/calculate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pairs: rows }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.error || "Server error.");
+          return;
+        }
+
+        const T = data.result;
+        const err = data.error;
+
+        resultValue.textContent = T.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+        resultSub.textContent = `Estimated numerical error ≈ ${err.toExponential(2)}`;
+        resultBox.classList.add("visible");
+
+        if (data.warning) {
+          warningBox.textContent = "⚠ " + data.warning;
+          warningBox.classList.add("visible");
+        }
+      } catch (e) {
+        showError("Failed to reach the server. Is the app running?");
+      } finally {
+        btnCalc.disabled = false;
+        btnCalc.textContent = "Calculate";
+      }
+    });
+
+    // Start with two default rows
+    addRow("", "1");
+  </script>
+</body>
+</html>
