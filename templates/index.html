@@ -24,7 +24,7 @@
       border-radius: 12px;
       padding: 2rem;
       width: 100%;
-      max-width: 680px;
+      max-width: 760px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
 
@@ -38,7 +38,7 @@
     .subtitle {
       font-size: 0.85rem;
       color: #64748b;
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.5rem;
     }
 
     /* Table */
@@ -80,9 +80,6 @@
       border-color: #7c3aed;
     }
 
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button { opacity: 1; }
-
     .btn-remove {
       background: none;
       border: none;
@@ -96,10 +93,8 @@
     }
 
     .btn-remove:hover { background: rgba(239,68,68,0.12); }
-
     .btn-remove:disabled { color: #3f3f46; cursor: default; background: none; }
 
-    /* Buttons row */
     .actions {
       display: flex;
       gap: 0.75rem;
@@ -124,7 +119,6 @@
       color: #94a3b8;
       border: 1px solid #2d3148;
     }
-
     .btn-add:hover { background: #263244; }
 
     .btn-calc {
@@ -132,10 +126,34 @@
       color: #fff;
       flex: 1;
     }
-
     .btn-calc:hover { opacity: 0.88; }
-
     .btn-calc:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      border-bottom: 1px solid #2d3148;
+      margin-bottom: 1rem;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.6rem 1rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: #94a3b8; }
+    .tab-btn.active {
+      color: #a78bfa;
+      border-bottom-color: #7c3aed;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
 
     /* Results */
     .result-box {
@@ -145,7 +163,6 @@
       padding: 1.25rem 1.5rem;
       display: none;
     }
-
     .result-box.visible { display: block; }
 
     .result-label {
@@ -179,7 +196,6 @@
       margin-top: 0.9rem;
       display: none;
     }
-
     .warning-box.visible { display: block; }
 
     .error-box {
@@ -192,7 +208,6 @@
       margin-top: 0.75rem;
       display: none;
     }
-
     .error-box.visible { display: block; }
 
     .divider {
@@ -206,8 +221,105 @@
       color: #475569;
       line-height: 1.6;
     }
-
     .help-text strong { color: #64748b; }
+    .help-text code {
+      background: #0f1117;
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: #94a3b8;
+      font-size: 0.78rem;
+    }
+
+    /* Distribution */
+    .dist-empty {
+      text-align: center;
+      color: #475569;
+      font-size: 0.85rem;
+      padding: 2rem 1rem;
+    }
+
+    .dist-content { display: none; }
+    .dist-content.visible { display: block; }
+
+    .dist-callout {
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .dist-callout-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      margin-bottom: 0.25rem;
+    }
+    .dist-callout-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #a78bfa;
+      line-height: 1.1;
+    }
+    .dist-callout-sub {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 0.35rem;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin: 0.75rem 0 1.25rem;
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: #7c3aed;
+      height: 4px;
+    }
+    .slider-pct {
+      font-weight: 700;
+      color: #a78bfa;
+      width: 3.2rem;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chart-wrap {
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 8px;
+      padding: 0.75rem;
+      position: relative;
+    }
+    .chart-wrap svg { display: block; width: 100%; height: auto; }
+
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .stat {
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 6px;
+      padding: 0.55rem 0.7rem;
+    }
+    .stat-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+    }
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      font-variant-numeric: tabular-nums;
+      margin-top: 0.15rem;
+    }
   </style>
 </head>
 <body>
@@ -219,7 +331,7 @@
       <thead>
         <tr>
           <th>Item label (optional)</th>
-          <th style="width:130px">Drop rate (1 in X)</th>
+          <th style="width:160px">Drop rate</th>
           <th style="width:100px">Qty needed</th>
           <th></th>
         </tr>
@@ -232,20 +344,47 @@
       <button class="btn btn-calc" id="btnCalc">Calculate</button>
     </div>
 
-    <div class="result-box" id="resultBox">
-      <div class="result-label">Expected trials</div>
-      <div class="result-value" id="resultValue">—</div>
-      <div class="result-sub" id="resultSub"></div>
-      <div class="warning-box" id="warningBox"></div>
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="expected">Expected Value</button>
+      <button class="tab-btn" data-tab="distribution">Distribution</button>
     </div>
 
-    <div class="error-box" id="errorBox"></div>
+    <div class="tab-panel active" data-tab="expected">
+      <div class="result-box" id="resultBox">
+        <div class="result-label">Expected trials</div>
+        <div class="result-value" id="resultValue">—</div>
+        <div class="result-sub" id="resultSub"></div>
+        <div class="warning-box" id="warningBox"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-tab="distribution">
+      <div class="dist-empty" id="distEmpty">Run Calculate to see the distribution.</div>
+      <div class="dist-content" id="distContent">
+        <div class="dist-callout">
+          <div class="dist-callout-label">Trials to be done with <span id="sliderPctInline">50</span>% probability</div>
+          <div class="dist-callout-value" id="quantileValue">—</div>
+          <div class="dist-callout-sub">Move the slider to scrub through percentiles.</div>
+        </div>
+        <div class="slider-row">
+          <span style="font-size:0.75rem;color:#64748b">1%</span>
+          <input type="range" id="pctSlider" min="1" max="99" value="50" step="1" />
+          <span class="slider-pct" id="pctValue">50%</span>
+        </div>
+        <div class="chart-wrap">
+          <svg id="distChart" viewBox="0 0 700 360" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="quick-stats" id="quickStats"></div>
+      </div>
+    </div>
 
     <hr class="divider" />
     <p class="help-text">
-      <strong>Drop rate (1 in X):</strong> e.g. enter <code>3000</code> for a 1/3000 chance per trial.<br />
+      <strong>Drop rate:</strong> accepts any of these — <code>3000</code> (= 1 in 3000), <code>1 in 3000</code>, <code>1/3000</code>, <code>0.0003</code>, or <code>0.03%</code>.<br />
       <strong>Qty needed:</strong> how many copies of that item you need to collect.<br />
-      This computes the expected number of independent trials to obtain all items simultaneously.
+      <strong>Expected Value</strong> shows the mean number of trials. <strong>Distribution</strong> shows the quantile curve — how many trials you'd need to be done with a given probability.
     </p>
   </div>
 
@@ -259,9 +398,19 @@
     const warningBox = document.getElementById("warningBox");
     const errorBox = document.getElementById("errorBox");
 
-    let rowCount = 0;
+    const distEmpty = document.getElementById("distEmpty");
+    const distContent = document.getElementById("distContent");
+    const pctSlider = document.getElementById("pctSlider");
+    const pctValue = document.getElementById("pctValue");
+    const pctInline = document.getElementById("sliderPctInline");
+    const quantileValue = document.getElementById("quantileValue");
+    const chartSvg = document.getElementById("distChart");
+    const quickStats = document.getElementById("quickStats");
 
-    function addRow(denom = "", k = "1", label = "") {
+    let rowCount = 0;
+    let distData = null; // { percentiles: [...], quantiles: [...] }
+
+    function addRow(rate = "", k = "1", label = "") {
       rowCount++;
       const id = rowCount;
       const tr = document.createElement("tr");
@@ -269,7 +418,7 @@
       tr.dataset.id = id;
       tr.innerHTML = `
         <td><input type="text" placeholder="e.g. Bandos Chestplate" value="${label}" /></td>
-        <td><input type="number" min="1" step="1" placeholder="e.g. 3000" value="${denom}" /></td>
+        <td><input type="text" placeholder="3000, 1/3000, 0.03%" value="${rate}" /></td>
         <td><input type="number" min="1" step="1" placeholder="1" value="${k}" /></td>
         <td><button class="btn-remove" title="Remove row">✕</button></td>
       `;
@@ -292,7 +441,7 @@
         const inputs = tr.querySelectorAll("input");
         rows.push({
           label: inputs[0].value.trim(),
-          denominator: inputs[1].value.trim(),
+          rate: inputs[1].value.trim(),
           k: inputs[2].value.trim(),
         });
       });
@@ -302,13 +451,27 @@
     function showError(msg) {
       errorBox.textContent = msg;
       errorBox.classList.add("visible");
-      resultBox.classList.remove("visible");
     }
-
     function clearMessages() {
       errorBox.classList.remove("visible");
       warningBox.classList.remove("visible");
     }
+
+    function fmt(n) {
+      if (n === null || n === undefined || !isFinite(n)) return "—";
+      return n.toLocaleString("en-US", { maximumFractionDigits: n < 100 ? 2 : 0 });
+    }
+
+    // Tabs
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const name = btn.dataset.tab;
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b === btn));
+        document.querySelectorAll(".tab-panel").forEach(p => {
+          p.classList.toggle("active", p.dataset.tab === name);
+        });
+      });
+    });
 
     btnAdd.addEventListener("click", () => addRow());
 
@@ -318,8 +481,8 @@
 
       for (let i = 0; i < rows.length; i++) {
         const r = rows[i];
-        if (!r.denominator || isNaN(Number(r.denominator)) || Number(r.denominator) <= 0) {
-          showError(`Row ${i + 1}: drop rate must be a positive number.`);
+        if (!r.rate) {
+          showError(`Row ${i + 1}: drop rate is required.`);
           return;
         }
         if (!r.k || isNaN(Number(r.k)) || Number(r.k) < 1 || !Number.isInteger(Number(r.k))) {
@@ -332,22 +495,27 @@
       btnCalc.textContent = "Calculating…";
 
       try {
-        const res = await fetch("/calculate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pairs: rows }),
-        });
+        const [resCalc, resDist] = await Promise.all([
+          fetch("/calculate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pairs: rows }),
+          }),
+          fetch("/distribution", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pairs: rows }),
+          }),
+        ]);
 
-        const data = await res.json();
-
-        if (!res.ok) {
-          showError(data.error || "Server error.");
+        const dataCalc = await resCalc.json();
+        if (!resCalc.ok) {
+          showError(dataCalc.error || "Server error.");
           return;
         }
 
-        const T = data.result;
-        const err = data.error;
-
+        const T = dataCalc.result;
+        const err = dataCalc.error;
         resultValue.textContent = T.toLocaleString("en-US", {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
@@ -355,9 +523,20 @@
         resultSub.textContent = `Estimated numerical error ≈ ${err.toExponential(2)}`;
         resultBox.classList.add("visible");
 
-        if (data.warning) {
-          warningBox.textContent = "⚠ " + data.warning;
+        if (dataCalc.warning) {
+          warningBox.textContent = "⚠ " + dataCalc.warning;
           warningBox.classList.add("visible");
+        }
+
+        const dataDist = await resDist.json();
+        if (resDist.ok) {
+          distData = dataDist;
+          renderDistribution();
+        } else {
+          distData = null;
+          distContent.classList.remove("visible");
+          distEmpty.style.display = "block";
+          distEmpty.textContent = dataDist.error || "Could not compute distribution.";
         }
       } catch (e) {
         showError("Failed to reach the server. Is the app running?");
@@ -367,8 +546,113 @@
       }
     });
 
-    // Start with two default rows
-    addRow("", "1");
+    pctSlider.addEventListener("input", () => updateSliderReadout());
+
+    function updateSliderReadout() {
+      const p = parseInt(pctSlider.value, 10);
+      pctValue.textContent = p + "%";
+      pctInline.textContent = p;
+      if (!distData) return;
+      const i = distData.percentiles.indexOf(p);
+      if (i >= 0) {
+        const q = distData.quantiles[i];
+        quantileValue.textContent = q === null ? "out of range" : fmt(q);
+      }
+      drawChart();
+    }
+
+    function renderDistribution() {
+      distEmpty.style.display = "none";
+      distContent.classList.add("visible");
+
+      // Quick percentile stats
+      const ps = [50, 75, 90, 95, 99];
+      quickStats.innerHTML = ps.map(p => {
+        const i = distData.percentiles.indexOf(p);
+        const q = i >= 0 ? distData.quantiles[i] : null;
+        return `<div class="stat"><div class="stat-label">P${p}</div><div class="stat-value">${fmt(q)}</div></div>`;
+      }).join("");
+
+      updateSliderReadout();
+    }
+
+    function drawChart() {
+      if (!distData) return;
+      const W = 700, H = 360;
+      const padL = 64, padR = 16, padT = 14, padB = 38;
+      const innerW = W - padL - padR;
+      const innerH = H - padT - padB;
+
+      const pts = distData.percentiles
+        .map((p, i) => [p, distData.quantiles[i]])
+        .filter(([_, q]) => q !== null && isFinite(q));
+
+      if (pts.length < 2) {
+        chartSvg.innerHTML = `<text x="${W/2}" y="${H/2}" fill="#64748b" text-anchor="middle" font-size="14">Not enough data to plot</text>`;
+        return;
+      }
+
+      const yMax = Math.max(...pts.map(p => p[1]));
+      const yMin = 0;
+
+      const xToPx = p => padL + ((p - 1) / 98) * innerW;
+      const yToPx = q => padT + innerH - ((q - yMin) / (yMax - yMin || 1)) * innerH;
+
+      const pathD = pts.map(([p, q], i) => `${i === 0 ? "M" : "L"}${xToPx(p).toFixed(1)},${yToPx(q).toFixed(1)}`).join(" ");
+      const areaD = pathD + ` L${xToPx(pts[pts.length-1][0]).toFixed(1)},${padT + innerH} L${xToPx(pts[0][0]).toFixed(1)},${padT + innerH} Z`;
+
+      // gridlines + labels
+      const xTicks = [1, 25, 50, 75, 99];
+      const yTickCount = 5;
+      const yTickVals = [];
+      for (let i = 0; i <= yTickCount; i++) yTickVals.push((yMax / yTickCount) * i);
+
+      const grid = [
+        ...yTickVals.map(v => {
+          const y = yToPx(v);
+          return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" stroke="#1e293b" stroke-width="1"/>
+                  <text x="${padL - 8}" y="${(y + 4).toFixed(1)}" fill="#475569" font-size="10" text-anchor="end">${fmt(v)}</text>`;
+        }).join(""),
+        ...xTicks.map(p => {
+          const x = xToPx(p);
+          return `<line x1="${x.toFixed(1)}" y1="${padT}" x2="${x.toFixed(1)}" y2="${padT + innerH}" stroke="#1e293b" stroke-width="1"/>
+                  <text x="${x.toFixed(1)}" y="${padT + innerH + 16}" fill="#475569" font-size="10" text-anchor="middle">${p}%</text>`;
+        }).join(""),
+      ].join("");
+
+      // current slider marker
+      const curP = parseInt(pctSlider.value, 10);
+      const curIdx = distData.percentiles.indexOf(curP);
+      const curQ = curIdx >= 0 ? distData.quantiles[curIdx] : null;
+      let marker = "";
+      if (curQ !== null && isFinite(curQ)) {
+        const mx = xToPx(curP);
+        const my = yToPx(curQ);
+        marker = `
+          <line x1="${mx.toFixed(1)}" y1="${padT}" x2="${mx.toFixed(1)}" y2="${padT + innerH}" stroke="#7c3aed" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+          <line x1="${padL}" y1="${my.toFixed(1)}" x2="${mx.toFixed(1)}" y2="${my.toFixed(1)}" stroke="#7c3aed" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
+          <circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="5" fill="#a78bfa" stroke="#0f1117" stroke-width="2"/>
+        `;
+      }
+
+      chartSvg.innerHTML = `
+        <defs>
+          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.02"/>
+          </linearGradient>
+        </defs>
+        ${grid}
+        <path d="${areaD}" fill="url(#areaGrad)"/>
+        <path d="${pathD}" fill="none" stroke="#a78bfa" stroke-width="2"/>
+        ${marker}
+        <text x="${padL + innerW/2}" y="${H - 6}" fill="#64748b" font-size="11" text-anchor="middle">Probability of being done (%)</text>
+        <text x="14" y="${padT + innerH/2}" fill="#64748b" font-size="11" text-anchor="middle" transform="rotate(-90 14 ${padT + innerH/2})">Trials needed</text>
+      `;
+    }
+
+    // Initial row
+    addRow("3000", "1");
   </script>
 </body>
 </html>
