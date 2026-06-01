@@ -320,6 +320,43 @@
       font-variant-numeric: tabular-nums;
       margin-top: 0.15rem;
     }
+    .stat-sub {
+      font-size: 0.7rem;
+      color: #64748b;
+      margin-top: 0.1rem;
+    }
+
+    /* KPH input */
+    .kph-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .kph-row label {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .kph-row input {
+      width: 110px;
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 6px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.6rem;
+      outline: none;
+    }
+    .kph-row input:focus { border-color: #7c3aed; }
+
+    .time-sub {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      margin-top: 0.35rem;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -339,6 +376,11 @@
       <tbody id="itemsBody"></tbody>
     </table>
 
+    <div class="kph-row">
+      <label for="kphInput">Kills per hour <span style="color:#475569;font-weight:400">(optional — converts trials to time)</span></label>
+      <input type="text" id="kphInput" placeholder="e.g. 25" />
+    </div>
+
     <div class="actions">
       <button class="btn btn-add" id="btnAdd">+ Add item</button>
       <button class="btn btn-calc" id="btnCalc">Calculate</button>
@@ -355,6 +397,7 @@
       <div class="result-box" id="resultBox">
         <div class="result-label">Expected trials</div>
         <div class="result-value" id="resultValue">—</div>
+        <div class="time-sub" id="resultTime"></div>
         <div class="result-sub" id="resultSub"></div>
         <div class="warning-box" id="warningBox"></div>
       </div>
@@ -366,6 +409,7 @@
         <div class="dist-callout">
           <div class="dist-callout-label">Trials to be done with <span id="sliderPctInline">50</span>% probability</div>
           <div class="dist-callout-value" id="quantileValue">—</div>
+          <div class="time-sub" id="quantileTime"></div>
           <div class="dist-callout-sub">Move the slider to scrub through percentiles.</div>
         </div>
         <div class="slider-row">
@@ -384,7 +428,8 @@
     <p class="help-text">
       <strong>Drop rate:</strong> accepts any of these — <code>3000</code> (= 1 in 3000), <code>1 in 3000</code>, <code>1/3000</code>, <code>0.0003</code>, or <code>0.03%</code>.<br />
       <strong>Qty needed:</strong> how many copies of that item you need to collect.<br />
-      <strong>Expected Value</strong> shows the mean number of trials. <strong>Distribution</strong> shows the quantile curve — how many trials you'd need to be done with a given probability.
+      <strong>Expected Value</strong> shows the mean number of trials. <strong>Distribution</strong> shows the quantile curve — how many trials you'd need to be done with a given probability.<br />
+      <strong>Kills per hour:</strong> optional — fill it in to convert trial counts into expected playtime.
     </p>
   </div>
 
@@ -392,11 +437,34 @@
     const tbody = document.getElementById("itemsBody");
     const btnAdd = document.getElementById("btnAdd");
     const btnCalc = document.getElementById("btnCalc");
+    const kphInput = document.getElementById("kphInput");
     const resultBox = document.getElementById("resultBox");
     const resultValue = document.getElementById("resultValue");
+    const resultTime = document.getElementById("resultTime");
     const resultSub = document.getElementById("resultSub");
     const warningBox = document.getElementById("warningBox");
     const errorBox = document.getElementById("errorBox");
+    const quantileTime = document.getElementById("quantileTime");
+
+    function getKPH() {
+      const v = parseFloat((kphInput.value || "").replace(/,/g, ""));
+      return isFinite(v) && v > 0 ? v : null;
+    }
+
+    function formatTime(trials, kph) {
+      if (!kph || !isFinite(trials)) return "";
+      const hours = trials / kph;
+      if (hours < 1) {
+        const mins = Math.round(hours * 60);
+        return `≈ ${mins} min`;
+      }
+      if (hours < 24) {
+        return `≈ ${hours.toLocaleString("en-US", { maximumFractionDigits: 1 })} hours`;
+      }
+      const days = Math.floor(hours / 24);
+      const rem = Math.round(hours - days * 24);
+      return `≈ ${days}d ${rem}h (${hours.toLocaleString("en-US", { maximumFractionDigits: 0 })} h)`;
+    }
 
     const distEmpty = document.getElementById("distEmpty");
     const distContent = document.getElementById("distContent");
@@ -520,6 +588,7 @@
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
         });
+        resultTime.textContent = formatTime(T, getKPH());
         resultSub.textContent = `Estimated numerical error ≈ ${err.toExponential(2)}`;
         resultBox.classList.add("visible");
 
@@ -548,6 +617,13 @@
 
     pctSlider.addEventListener("input", () => updateSliderReadout());
 
+    kphInput.addEventListener("input", () => {
+      // Re-render time annotations from the existing result, no recompute
+      const T = parseFloat(resultValue.textContent.replace(/,/g, ""));
+      if (isFinite(T)) resultTime.textContent = formatTime(T, getKPH());
+      if (distData) renderDistribution();
+    });
+
     function updateSliderReadout() {
       const p = parseInt(pctSlider.value, 10);
       pctValue.textContent = p + "%";
@@ -557,6 +633,7 @@
       if (i >= 0) {
         const q = distData.quantiles[i];
         quantileValue.textContent = q === null ? "out of range" : fmt(q);
+        quantileTime.textContent = q === null ? "" : formatTime(q, getKPH());
       }
       drawChart();
     }
@@ -566,11 +643,13 @@
       distContent.classList.add("visible");
 
       // Quick percentile stats
+      const kph = getKPH();
       const ps = [50, 75, 90, 95, 99];
       quickStats.innerHTML = ps.map(p => {
         const i = distData.percentiles.indexOf(p);
         const q = i >= 0 ? distData.quantiles[i] : null;
-        return `<div class="stat"><div class="stat-label">P${p}</div><div class="stat-value">${fmt(q)}</div></div>`;
+        const sub = kph && q !== null && isFinite(q) ? `<div class="stat-sub">${formatTime(q, kph)}</div>` : "";
+        return `<div class="stat"><div class="stat-label">P${p}</div><div class="stat-value">${fmt(q)}</div>${sub}</div>`;
       }).join("");
 
       updateSliderReadout();
