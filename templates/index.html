@@ -267,12 +267,36 @@
       margin-top: 0.35rem;
     }
 
+    .mode-toggle-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.9rem;
+    }
+    .mode-btn {
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      color: #64748b;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .mode-btn:hover { color: #94a3b8; }
+    .mode-btn.active {
+      color: #a78bfa;
+      border-color: #7c3aed;
+      background: rgba(124,58,237,0.08);
+    }
+
     .slider-row {
       display: flex;
       align-items: center;
       gap: 0.85rem;
       margin: 0.75rem 0 1.25rem;
     }
+    .slider-row.hidden { display: none; }
     .slider-row input[type="range"] {
       flex: 1;
       accent-color: #7c3aed;
@@ -284,6 +308,35 @@
       width: 3.2rem;
       text-align: right;
       font-variant-numeric: tabular-nums;
+    }
+
+    .kc-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0.75rem 0 1.25rem;
+    }
+    .kc-row.hidden { display: none; }
+    .kc-row label {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .kc-row input {
+      width: 140px;
+      background: #0f1117;
+      border: 1px solid #2d3148;
+      border-radius: 6px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      padding: 0.45rem 0.6rem;
+      outline: none;
+    }
+    .kc-row input:focus { border-color: #7c3aed; }
+    .kc-hint {
+      font-size: 0.75rem;
+      color: #475569;
     }
 
     .chart-wrap {
@@ -407,17 +460,30 @@
     <div class="tab-panel" data-tab="distribution">
       <div class="dist-empty" id="distEmpty">Run Calculate to see the distribution.</div>
       <div class="dist-content" id="distContent">
+        <div class="mode-toggle-row">
+          <button class="mode-btn active" id="modeBtnPct" data-mode="pct">By probability %</button>
+          <button class="mode-btn" id="modeBtnKc" data-mode="kc">By trials / KC</button>
+        </div>
+
         <div class="dist-callout">
-          <div class="dist-callout-label">Trials to be done with <span id="sliderPctInline">50</span>% probability</div>
+          <div class="dist-callout-label" id="distCalloutLabel">Trials to be done with <span id="sliderPctInline">50</span>% probability</div>
           <div class="dist-callout-value" id="quantileValue">—</div>
           <div class="time-sub" id="quantileTime"></div>
-          <div class="dist-callout-sub">Move the slider to scrub through percentiles.</div>
+          <div class="dist-callout-sub" id="distCalloutSub">Move the slider to scrub through percentiles.</div>
         </div>
-        <div class="slider-row">
+
+        <div class="slider-row" id="pctModePanel">
           <span style="font-size:0.75rem;color:#64748b">1%</span>
           <input type="range" id="pctSlider" min="1" max="99" value="50" step="1" />
           <span class="slider-pct" id="pctValue">50%</span>
         </div>
+
+        <div class="kc-row" id="kcModePanel">
+          <label for="kcInput">Trials done so far</label>
+          <input type="number" id="kcInput" min="0" step="1" placeholder="e.g. 1500" />
+          <span class="kc-hint">how far along are you?</span>
+        </div>
+
         <div class="chart-wrap">
           <svg id="distChart" viewBox="0 0 700 360" preserveAspectRatio="none"></svg>
         </div>
@@ -430,7 +496,7 @@
       <strong>Drop rate:</strong> accepts any of these — <code>3000</code> (= 1 in 3000), <code>1 in 3000</code>, <code>1/3000</code>, <code>0.0003</code>, or <code>0.03%</code>.<br />
       <strong>Qty needed:</strong> how many copies of that item you need to collect.<br />
       <strong>Count:</strong> how many <em>separate</em> items share this exact rate and qty needed (e.g. a clue casket table with 15 different uniques all at 1/360) — leave at 1 for a single item.<br />
-      <strong>Expected Value</strong> shows the mean number of trials. <strong>Distribution</strong> shows the quantile curve — how many trials you'd need to be done with a given probability.<br />
+      <strong>Expected Value</strong> shows the mean number of trials. <strong>Distribution</strong> shows the quantile curve — switch between <em>By probability %</em> (trials needed for a given chance) and <em>By trials / KC</em> (chance of being done at a trial count you enter).<br />
       <strong>Kills per hour:</strong> optional — fill it in to convert trial counts into expected playtime.
     </p>
   </div>
@@ -472,13 +538,64 @@
     const distContent = document.getElementById("distContent");
     const pctSlider = document.getElementById("pctSlider");
     const pctValue = document.getElementById("pctValue");
-    const pctInline = document.getElementById("sliderPctInline");
+    let pctInline = document.getElementById("sliderPctInline");
     const quantileValue = document.getElementById("quantileValue");
     const chartSvg = document.getElementById("distChart");
     const quickStats = document.getElementById("quickStats");
+    const modeBtnPct = document.getElementById("modeBtnPct");
+    const modeBtnKc = document.getElementById("modeBtnKc");
+    const pctModePanel = document.getElementById("pctModePanel");
+    const kcModePanel = document.getElementById("kcModePanel");
+    const kcInput = document.getElementById("kcInput");
+    const distCalloutLabel = document.getElementById("distCalloutLabel");
+    const distCalloutSub = document.getElementById("distCalloutSub");
 
     let rowCount = 0;
-    let distData = null; // { percentiles: [...], quantiles: [...] }
+    let distData = null; // { percentiles: [...], quantiles: [...], xs: [...], fs: [...] }
+    let distMode = "pct"; // "pct" | "kc"
+
+    // Linear-interpolate the CDF (fs over xs) at an arbitrary trial count.
+    // Mirrors the server's own quantile interpolation, just run in reverse
+    // (x -> probability instead of probability -> x) using the same grid.
+    function probabilityAtTrials(x) {
+      if (!distData || !distData.xs || !distData.xs.length) return null;
+      const xs = distData.xs, fs = distData.fs;
+      if (x <= xs[0]) return fs[0];
+      if (x >= xs[xs.length - 1]) return fs[fs.length - 1];
+      // xs is sorted ascending; find the bracketing pair.
+      let lo = 0, hi = xs.length - 1;
+      while (hi - lo > 1) {
+        const mid = (lo + hi) >> 1;
+        if (xs[mid] <= x) lo = mid; else hi = mid;
+      }
+      const x0 = xs[lo], x1 = xs[hi], f0 = fs[lo], f1 = fs[hi];
+      if (x1 <= x0) return f0;
+      const t = (x - x0) / (x1 - x0);
+      return f0 + t * (f1 - f0);
+    }
+
+    function setMode(mode) {
+      distMode = mode;
+      modeBtnPct.classList.toggle("active", mode === "pct");
+      modeBtnKc.classList.toggle("active", mode === "kc");
+      pctModePanel.classList.toggle("hidden", mode !== "pct");
+      kcModePanel.classList.toggle("hidden", mode !== "kc");
+      if (mode === "pct") {
+        distCalloutSub.textContent = "Move the slider to scrub through percentiles.";
+        // Restoring via innerHTML replaces the #sliderPctInline node, so the
+        // cached pctInline reference must be re-fetched or its .textContent
+        // writes would silently target a detached, invisible element.
+        distCalloutLabel.innerHTML = `Trials to be done with <span id="sliderPctInline">${pctSlider.value}</span>% probability`;
+        pctInline = document.getElementById("sliderPctInline");
+      } else {
+        distCalloutSub.textContent = "Enter how many trials you've done to see your odds so far.";
+        distCalloutLabel.textContent = "Chance of being done by now";
+      }
+      if (distData) refreshDistReadout();
+    }
+
+    modeBtnPct.addEventListener("click", () => setMode("pct"));
+    modeBtnKc.addEventListener("click", () => setMode("kc"));
 
     function addRow(rate = "", k = "1", label = "", count = "1") {
       rowCount++;
@@ -624,6 +741,7 @@
     });
 
     pctSlider.addEventListener("input", () => updateSliderReadout());
+    kcInput.addEventListener("input", () => updateKCReadout());
 
     kphInput.addEventListener("input", () => {
       // Re-render time annotations from the existing result, no recompute
@@ -631,6 +749,11 @@
       if (isFinite(T)) resultTime.textContent = formatTime(T, getKPH());
       if (distData) renderDistribution();
     });
+
+    function refreshDistReadout() {
+      if (distMode === "pct") updateSliderReadout();
+      else updateKCReadout();
+    }
 
     function updateSliderReadout() {
       const p = parseInt(pctSlider.value, 10);
@@ -643,6 +766,22 @@
         quantileValue.textContent = q === null ? "out of range" : fmt(q);
         quantileTime.textContent = q === null ? "" : formatTime(q, getKPH());
       }
+      drawChart();
+    }
+
+    function updateKCReadout() {
+      const kc = parseFloat(kcInput.value);
+      if (!distData || !isFinite(kc) || kc < 0) {
+        quantileValue.textContent = "—";
+        quantileTime.textContent = "";
+        distCalloutLabel.textContent = "Chance of being done by now";
+        drawChart();
+        return;
+      }
+      const prob = probabilityAtTrials(kc);
+      distCalloutLabel.textContent = `Chance of being done after ${fmt(kc)} trials`;
+      quantileValue.textContent = prob === null ? "—" : (prob * 100).toLocaleString("en-US", { maximumFractionDigits: 2 }) + "%";
+      quantileTime.textContent = "";
       drawChart();
     }
 
@@ -660,7 +799,7 @@
         return `<div class="stat"><div class="stat-label">P${p}</div><div class="stat-value">${fmt(q)}</div>${sub}</div>`;
       }).join("");
 
-      updateSliderReadout();
+      refreshDistReadout();
     }
 
     function drawChart() {
@@ -707,14 +846,30 @@
         }).join(""),
       ].join("");
 
-      // current slider marker
-      const curP = parseInt(pctSlider.value, 10);
-      const curIdx = distData.percentiles.indexOf(curP);
-      const curQ = curIdx >= 0 ? distData.quantiles[curIdx] : null;
+      // current marker — from the % slider in pct mode, or from the
+      // interpolated probability at the entered trial count in kc mode
+      let curP, curQ;
+      if (distMode === "pct") {
+        curP = parseInt(pctSlider.value, 10);
+        const curIdx = distData.percentiles.indexOf(curP);
+        curQ = curIdx >= 0 ? distData.quantiles[curIdx] : null;
+      } else {
+        const kc = parseFloat(kcInput.value);
+        if (isFinite(kc) && kc >= 0) {
+          const prob = probabilityAtTrials(kc);
+          curP = prob === null ? null : Math.min(99, Math.max(1, prob * 100));
+          curQ = kc;
+        } else {
+          curP = null;
+          curQ = null;
+        }
+      }
       let marker = "";
-      if (curQ !== null && isFinite(curQ)) {
+      if (curP !== null && curQ !== null && isFinite(curP) && isFinite(curQ)) {
         const mx = xToPx(curP);
-        const my = yToPx(curQ);
+        // A KC value outside the plotted range would otherwise place the
+        // marker off-canvas (SVG doesn't clip its own overflow by default).
+        const my = Math.min(padT + innerH, Math.max(padT, yToPx(curQ)));
         marker = `
           <line x1="${mx.toFixed(1)}" y1="${padT}" x2="${mx.toFixed(1)}" y2="${padT + innerH}" stroke="#7c3aed" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
           <line x1="${padL}" y1="${my.toFixed(1)}" x2="${mx.toFixed(1)}" y2="${my.toFixed(1)}" stroke="#7c3aed" stroke-width="1" stroke-dasharray="3,3" opacity="0.6"/>
