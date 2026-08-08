@@ -1,0 +1,2 @@
+# The test suite runs in Node and is not part of the served site.
+tests/

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coupon Collector Calculator</title>
+  <meta name="description" content="Expected trials and full distribution for collecting k copies of every item from independent drop rates. Runs entirely in your browser." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <div class="card">
+    <h1>Coupon Collector Calculator</h1>
+    <p class="subtitle">Expected trials to collect k copies of each item from independent drop rates.</p>
+
+    <div class="table-scroll">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>Item label (optional)</th>
+            <th style="width:150px">Drop rate</th>
+            <th style="width:90px">Qty needed</th>
+            <th style="width:90px">Count</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="itemsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="kph-row">
+      <label for="kphInput">Kills per hour <span style="color:#475569;font-weight:400">(optional — converts trials to time)</span></label>
+      <input type="text" id="kphInput" placeholder="e.g. 25" />
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-add" id="btnAdd">+ Add item</button>
+      <button class="btn btn-calc" id="btnCalc">Calculate</button>
+      <button class="btn btn-share" id="btnShare" title="Copy a link that reproduces this table">Copy link</button>
+    </div>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="expected">Expected Value</button>
+      <button class="tab-btn" data-tab="distribution">Distribution</button>
+    </div>
+
+    <div class="tab-panel active" data-tab="expected">
+      <div class="result-box" id="resultBox">
+        <div class="result-label">Expected trials</div>
+        <div class="result-value" id="resultValue">—</div>
+        <div class="time-sub" id="resultTime"></div>
+        <div class="result-sub" id="resultSub"></div>
+        <div class="warning-box" id="warningBox"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-tab="distribution">
+      <div class="dist-empty" id="distEmpty">Run Calculate to see the distribution.</div>
+      <div class="dist-content" id="distContent">
+        <div class="mode-toggle-row">
+          <button class="mode-btn active" id="modeBtnPct" data-mode="pct">By probability %</button>
+          <button class="mode-btn" id="modeBtnKc" data-mode="kc">By trials / KC</button>
+        </div>
+
+        <div class="dist-callout">
+          <div class="dist-callout-label" id="distCalloutLabel">Trials to be done with <span id="sliderPctInline">50</span>% probability</div>
+          <div class="dist-callout-value" id="quantileValue">—</div>
+          <div class="time-sub" id="quantileTime"></div>
+          <div class="dist-callout-sub" id="distCalloutSub">Move the slider to scrub through percentiles.</div>
+        </div>
+
+        <div class="slider-row" id="pctModePanel">
+          <span style="font-size:0.75rem;color:#64748b">1%</span>
+          <input type="range" id="pctSlider" min="1" max="99" value="50" step="1" aria-label="Probability percentile" />
+          <span class="slider-pct" id="pctValue">50%</span>
+        </div>
+
+        <div class="kc-row hidden" id="kcModePanel">
+          <label for="kcInput">Trials done so far</label>
+          <input type="number" id="kcInput" min="0" step="1" placeholder="e.g. 1500" />
+          <span class="kc-hint">how far along are you?</span>
+        </div>
+
+        <div class="chart-wrap">
+          <svg id="distChart" viewBox="0 0 700 360" role="img" aria-label="Quantile curve: trials needed against probability of being finished"></svg>
+        </div>
+        <div class="quick-stats" id="quickStats"></div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+    <p class="help-text">
+      <strong>Drop rate:</strong> accepts any of these — <code>3000</code> (= 1 in 3000), <code>1 in 3000</code>, <code>1/3000</code>, <code>0.0003</code>, or <code>0.03%</code>.<br />
+      <strong>Qty needed:</strong> how many copies of that item you need to collect.<br />
+      <strong>Count:</strong> how many <em>separate</em> items share this exact rate and qty needed (e.g. a clue casket table with 15 different uniques all at 1/360) — leave at 1 for a single item.<br />
+      <strong>Expected Value</strong> shows the mean number of trials. <strong>Distribution</strong> shows the quantile curve — switch between <em>By probability %</em> (trials needed for a given chance) and <em>By trials / KC</em> (chance of being done at a trial count you enter).<br />
+      <strong>Kills per hour:</strong> optional — fill it in to convert trial counts into expected playtime.
+    </p>
+
+    <p class="footnote">
+      Runs entirely in your browser — nothing is uploaded, and it works offline.
+    </p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="assets/coupon.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
