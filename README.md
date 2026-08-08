@@ -51,6 +51,33 @@ one. Covers the special functions, expected values (exact for single items, for
 equal-rate tables, and via inclusion–exclusion for mixed rates), CDF and tail
 precision, quantiles, rate parsing, and input validation.
 
+## Deploying
+
+There's no build step. The served site is `index.html`, `assets/` and
+`favicon.svg` — upload them anywhere and it works.
+
+For Vercel, from the repo root:
+
+```
+vercel          # preview deployment
+vercel --prod   # production
+```
+
+Vercel needs no framework preset; `vercel.json` supplies everything, and
+`.vercelignore` keeps `tests/` out of the deployment. Connecting the repo for
+git-push deploys works equally well — there is nothing to configure.
+
+`vercel.json` sets three things:
+
+- **A content security policy.** `default-src 'none'` with only `script-src` and
+  `style-src` opened up, which means the page cannot make a network request of
+  any kind. The claim that nothing you type leaves the browser is enforced by
+  the browser rather than merely asserted here.
+- **`Cache-Control: max-age=0, must-revalidate` on `assets/`.** The asset
+  filenames aren't content-hashed, so a long-lived immutable cache would strand
+  visitors on a stale `coupon.js` after an update.
+- **`cleanUrls`**, so `/index.html` resolves to `/`.
+
 ## Numerical notes
 
 Worth knowing if you touch `assets/coupon.js`:
